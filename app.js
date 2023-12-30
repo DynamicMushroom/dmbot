@@ -37,8 +37,8 @@ app.use(bodyParser.json());
 app.post('/process_request', async (req, res) => {
     const user_input = req.body.user_input || '';
 
-    // Adjusted regular expressions for parsing name, email, and phone
-    const nameRegex = /name is ([\w\s]+)(?:,|\.| my email is)/i; // Adjusted to capture full name
+    // Define regular expressions for parsing name, email, and phone
+    const nameRegex = /name is ([\w\s]+)(?:,|\.| my email is)/i;
     const emailRegex = /\S+@\S+/;
     const phoneRegex = /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/;
 
@@ -47,21 +47,21 @@ app.post('/process_request', async (req, res) => {
     let email = emailRegex.test(user_input) ? user_input.match(emailRegex)[0] : null;
     let phone = phoneRegex.test(user_input) ? user_input.match(phoneRegex)[0] : null;
 
-    // Construct a response based on the extracted information
-    let botResponse = "Thank you";
-    if (customer_name) {
-        botResponse += ` ${customer_name}`;
-    }
-    botResponse += ". We have received your information.";
-
-    // OpenAI API call to generate a more personalized response 
     try {
-        const response = await openaiClient.completions.create({
-            model: "text-davinci-003",
-            prompt: `Generate a polite response to a customer who has just provided their contact details.\n\nCustomer's Name: ${customer_name}\nEmail: ${email}\nPhone: ${phone}\n\nBot: \n and ask if theres anything else you can help them with.`,
-            max_tokens: 800
+        const response = await openaiClient.chat.completions.create({
+            model: "gpt-4-1106-preview",
+            messages: [{
+                role: "system",
+                content: "You are a helpful assistant for a company called Dynamic Mushroom. You take user information, their" +
+                    "email, phone number, name."
+            },{
+                role: "user",
+                content: user_input
+            }]
         });
-        botResponse += "\n\n" + response.choices[0].text.trim();
+
+        // Assuming the response is structured correctly, extract the message content
+        let botResponse = response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
 
         // Save interaction to database
         await CustomerInteraction.create({
@@ -79,7 +79,8 @@ app.post('/process_request', async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
+
