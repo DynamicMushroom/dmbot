@@ -53,7 +53,7 @@ app.post('/process_request', async (req, res) => {
             messages: [{
                 role: "system",
                 content: "You are a helpful assistant for a company called Dynamic Mushroom. You take user information, their" +
-                    "email, phone number, name."
+                    "email, phone number, and name."
             },{
                 role: "user",
                 content: user_input
