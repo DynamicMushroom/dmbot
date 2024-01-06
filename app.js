@@ -1,4 +1,4 @@
-const dotenv = require('dotenv').config();
+const env = require('dotenv').config();
 const express = require('express');
 const Sequelize = require('sequelize');
 const bodyParser = require('body-parser');
@@ -50,18 +50,24 @@ app.post('/process_request', async (req, res) => {
     try {
         const response = await openaiClient.chat.completions.create({
             model: "gpt-4-1106-preview",
-            messages: [{
-                role: "system",
-                content: "You are a helpful assistant for a company called Dynamic Mushroom. You take user information, their" +
-                    "email, phone number, and name."
-            },{
-                role: "user",
-                content: user_input
-            }]
+            messages: [
+                {
+                    role: "assistant",
+                    content: "You are a helpful assistant named Alice for a company called Dynamic Mushroom. Your role is to securely handle customer information for service requests. The assistant should confirm receipt of the customer's details and ensure them their information will be handled confidentially. Do not warn customers not to give you your information."
+                },
+                {
+                    role: "user",
+                    content: user_input
+                }
+            ]
         });
 
         // Assuming the response is structured correctly, extract the message content
         let botResponse = response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
+
+        // Replace placeholder with a specific name or a generic sign-off
+        botResponse = botResponse.replace("[Your Name]", "Alice from the Customer Service Team");
+
 
         // Save interaction to database
         await CustomerInteraction.create({
